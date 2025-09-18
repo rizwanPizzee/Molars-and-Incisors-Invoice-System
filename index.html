@@ -935,13 +935,13 @@
         const element = document.querySelector(".card");
         const opt = {
           margin: 10, // px margin around
-          // filename: `${patientInputs.mr.value || "no-mr"} - ${
-          //   patientInputs.name.value || "invoice"
-          // } - invoice`,
-
-          filename: `Clinic Invoices/${patientInputs.mr.value || "no-mr"} - ${
+          filename: `${patientInputs.mr.value || "no-mr"} - ${
             patientInputs.name.value || "invoice"
-          } - invoice.pdf`,
+          } - invoice`,
+
+          // filename: `Clinic Invoices/${patientInputs.mr.value || "no-mr"} - ${
+          //   patientInputs.name.value || "invoice"
+          // } - invoice.pdf`,
 
           image: { type: "jpeg", quality: 1 },
           html2canvas: { scale: 2, useCORS: true },
@@ -1078,5 +1078,6 @@
     </script>
   </body>
 </html>
+
 
 
