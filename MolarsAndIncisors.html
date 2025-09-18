@@ -1,0 +1,1084 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Molars and Incisors</title>
+    <link rel="icon" type="image/x-icon" href="favicon.png" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <style>
+      :root {
+        --accent: #1f1f1f;
+        --muted: #6c6c6c;
+        --paper: #ffffff;
+        --border: #e6e6e6;
+        --card-width: 820px;
+        --label-w: 130px;
+        --card: #ffffff;
+        --accent-600: #1e40af;
+        --radius: 10px;
+        --shadow: 0 6px 20px rgba(32, 33, 36, 0.06);
+        --gap: 12px;
+        --pad: 14px;
+        font-family: Arial, sans-serif;
+        color: var(--accent);
+      }
+
+      html,
+      body {
+        background: white;
+        margin: 0;
+        padding: 26px 0;
+      }
+
+      .wrap {
+        width: var(--card-width);
+        margin: 0 auto;
+        padding: 0 16px;
+      }
+
+      .controls {
+        max-width: 980px;
+        margin: 0 auto 20px;
+        background: var(--card);
+        padding: 20px;
+        border-radius: var(--radius);
+        box-shadow: 0px 0px 10px rgba(61, 61, 61, 0.644);
+      }
+
+      .patient-info {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: var(--gap);
+        align-items: end;
+        margin-bottom: 20px;
+        padding-bottom: 20px;
+        border-bottom: 2px solid var(--border);
+      }
+
+      .items-section {
+        margin-top: 20px;
+      }
+
+      .items-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+      }
+
+      .add-item-btn {
+        background: linear-gradient(135deg, #22c55e, #16a34a);
+        color: white;
+        padding: 8px 16px;
+        border: none;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: bold;
+        cursor: pointer;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        transition: background 0.3s ease;
+      }
+
+      .add-item-btn:hover {
+        background: linear-gradient(135deg, #16a34a, #15803d);
+      }
+
+      .item-row {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr 1fr auto;
+        gap: var(--gap);
+        align-items: end;
+        margin-bottom: 15px;
+        padding: 15px;
+        background: #f9f9f9;
+        border-radius: 8px;
+        border: 1px solid #e0e0e0;
+      }
+
+      .remove-btn {
+        background: #ef4444;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        padding: 8px 12px;
+        cursor: pointer;
+        font-size: 12px;
+        font-weight: bold;
+        transition: background 0.3s ease;
+        height: fit-content;
+        margin-top: 20px;
+      }
+
+      .remove-btn:hover {
+        background: #dc2626;
+      }
+
+      .field {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .field label {
+        font-size: 12px;
+        font-weight: 600;
+        margin-bottom: 6px;
+        text-transform: capitalize;
+        letter-spacing: 0.2px;
+      }
+
+      .field input[type="text"],
+      .field input[type="number"],
+      .field input[type="datetime-local"],
+      .field select {
+        font-size: 14px;
+        padding: 10px 12px;
+        border: 1px solid #757575;
+        background: #fff;
+        border-radius: 8px;
+        outline: none;
+        transition: box-shadow 0.12s ease, border-color 0.12s ease,
+          transform 0.06s ease;
+        box-sizing: border-box;
+      }
+
+      .field input::placeholder {
+        color: #9aa4b2;
+        font-weight: 500;
+      }
+
+      .field input:focus,
+      .field select:focus {
+        border-color: var(--accent);
+        box-shadow: 0 6px 18px rgba(37, 99, 235, 0.12);
+        transform: translateY(-1px);
+      }
+
+      .card {
+        /* background: var(--paper); */
+        padding: 35px 10px 0px 0px;
+        color: black;
+        box-shadow: 0px 0px 10px rgba(61, 61, 61, 0.644);
+        z-index: 1000;
+        border-radius: 10px;
+      }
+      #invoice-card {
+        /* width: 210mm; A4 width */
+        background-color: white;
+        box-sizing: border-box;
+        max-width: 100%;
+        background: white; /* avoid transparency bleed */
+      }
+
+      /* Prevent important blocks being split */
+      .no-break,
+      .totals,
+      .header {
+        page-break-inside: avoid;
+        break-inside: avoid;
+        -webkit-column-break-inside: avoid;
+      }
+
+      .header {
+        display: flex;
+        justify-content: space-between;
+        gap: 20px;
+        align-items: flex-start;
+        margin-bottom: 8px;
+      }
+
+      .col {
+        flex: 1;
+      }
+
+      .info-row {
+        display: flex;
+        align-items: center;
+        margin: 6px 0;
+      }
+
+      .label-info {
+        font-weight: 700;
+      }
+
+      .value {
+        flex: 1;
+        color: #000000;
+        padding-left: 4px;
+      }
+
+      .meta {
+        text-align: left;
+      }
+
+      .meta .info-row {
+        justify-content: flex-end;
+      }
+
+      .meta .label-info {
+        margin-left: 8px;
+      }
+
+      .items {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 14px;
+      }
+
+      .items thead th {
+        text-align: left;
+        padding: 10px 6px 12px 6px;
+        font-weight: 700;
+        border-bottom: 2px solid var(--border);
+      }
+
+      .items tbody td {
+        padding: 12px 6px;
+        border-bottom: 1px solid #f0f0f0;
+        vertical-align: top;
+      }
+
+      .hr {
+        height: 6px;
+        border-top: 1px solid var(--border);
+        margin: 12px 0 18px;
+      }
+
+      .totals {
+        display: flex;
+        justify-content: space-around;
+        margin-top: 16px;
+      }
+
+      .totals table {
+        width: 280px;
+        border-collapse: collapse;
+      }
+      .totals table:first-child {
+        width: 230px;
+        border-collapse: collapse;
+      }
+
+      .totals td {
+        padding: 6px 8px;
+      }
+
+      .totals .label {
+        font-weight: 700;
+        text-align: left;
+      }
+
+      .totals .value {
+        text-align: right;
+      }
+
+      .download-btn {
+        background: linear-gradient(135deg, #4a90e2, #357abd);
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+        transition: background 0.3s ease;
+        margin-right: 10px;
+      }
+
+      .download-btn:hover {
+        background: linear-gradient(135deg, #357abd, #2a5d8f);
+      }
+
+      .sr-only {
+        position: absolute !important;
+        height: 1px;
+        width: 1px;
+        overflow: hidden;
+        clip: rect(1px, 1px, 1px, 1px);
+        white-space: nowrap;
+        border: 0;
+        padding: 0;
+        margin: -1px;
+      }
+
+      .paid-section {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: var(--gap);
+        margin-top: 20px;
+        padding-top: 20px;
+        border-top: 2px solid var(--border);
+      }
+
+      @media print {
+        /* body * {
+          visibility: hidden;
+        }
+        #invoice-card,
+        #invoice-card * {
+          visibility: visible;
+        }
+        #invoice-card {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100% !important;
+          height: auto !important;
+          overflow: visible !important;
+          background: white !important;
+          page-break-after: always;
+        }
+        img {
+          max-width: 100% !important;
+        } */
+
+        .controls,
+        .download-div,
+        .new-invoice {
+          display: none;
+        }
+        .footer-div {
+          z-index: 1;
+        }
+        body {
+          margin: 0;
+        }
+
+        .card {
+          margin: 20px;
+          /* position: absolute; */
+          top: 0;
+          padding: 18px 10px 10px 10px;
+          box-shadow: none;
+          z-index: 10000;
+        }
+        .card img {
+          margin-top: 0;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="new-invoice">
+        <button
+          onclick="location.reload()"
+          style="
+            background-color: #4caf50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            display: flex;
+            justify-content: end;
+            align-items: end;
+            margin-bottom: 20px;
+          "
+        >
+          Create New Invoice
+        </button>
+      </div>
+      <div class="controls">
+        <!-- Patient Information Section -->
+
+        <div class="patient-info">
+          <div class="field">
+            <label for="name">Full name</label>
+            <input type="text" id="name" placeholder="Enter Name" />
+          </div>
+
+          <div class="field">
+            <label for="mr-no">MR number</label>
+            <input type="text" id="mr-no" placeholder="MR No" />
+          </div>
+
+          <div class="field">
+            <label for="phone">Phone</label>
+            <input type="text" id="phone" placeholder="Phone" />
+          </div>
+
+          <div class="field">
+            <label for="gender">Gender</label>
+            <select id="gender">
+              <option value="">Select Gender</option>
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="doctor-name">Doctor name</label>
+            <select id="doctor-name">
+              <option value="">Select Doctor</option>
+              <option value="Dr. Gulrez Raja">Dr. Gulrez Raja</option>
+              <option value="Dr. Omair">Dr. Omair</option>
+            </select>
+          </div>
+
+          <div class="field" style="display: none">
+            <label for="appointment-time" class="sr-only"
+              >Appointment time</label
+            >
+            <input type="datetime-local" id="appointment-time" />
+          </div>
+        </div>
+
+        <!-- Items Section -->
+        <div class="items-section">
+          <div class="items-header">
+            <h3 style="margin: 0; color: var(--accent)">Services</h3>
+            <button class="add-item-btn" onclick="addItemRow()">
+              + Add Service
+            </button>
+          </div>
+
+          <div id="items-container">
+            <!-- Item rows will be added here -->
+          </div>
+        </div>
+
+        <!-- Payment Section -->
+        <div class="paid-section">
+          <div class="field">
+            <label for="paid">Paid Amount</label>
+            <input
+              type="number"
+              id="paid"
+              placeholder="Amount paid"
+              min="0"
+              step="0.01"
+            />
+          </div>
+          <div class="field">
+            <label for="payment-mode">Payment Mode</label>
+            <select id="payment-mode">
+              <option value="">Select Mode</option>
+              <option value="Cash">Cash</option>
+              <option value="Card">Card</option>
+              <option value="Online Transfer">Online Transfer</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div id="invoice-card" class="card">
+        <div
+          style="
+            display: flex;
+            justify-content: center;
+            margin: 0px 0px 45px 0px;
+          "
+        >
+          <img
+            style="width: 290px; margin-bottom: 45px"
+            src="MAI.png"
+            alt="Molars and Incisors Logo"
+          />
+        </div>
+
+        <div
+          class="header"
+          style="color: black; padding-left: 14px; font-size: 16px"
+        >
+          <div class="col">
+            <div class="info-row">
+              <span class="label-info">Name: </span>
+              <span class="value" id="display-name"></span>
+            </div>
+            <div class="info-row">
+              <span class="label-info">MR#: </span>
+              <span class="value" id="display-mr"></span>
+            </div>
+            <div class="info-row">
+              <span class="label-info">Phone: </span>
+              <span class="value" id="display-phone"></span>
+            </div>
+            <div class="info-row">
+              <span class="label-info">Gender: </span>
+              <span class="value" id="display-gender"></span>
+            </div>
+            <div class="info-row">
+              <span class="label-info">Doctor's Name: </span>
+              <span class="value" id="display-doctor"></span>
+            </div>
+          </div>
+
+          <div class="col meta" style="padding-left: 105px">
+            <div class="info-row">
+              <span class="label-info">Date: </span>
+              <span class="value" id="display-time"></span>
+            </div>
+            <div class="info-row">
+              <span class="label-info">Invoice#: </span>
+              <span class="value" id="invoice-number">—</span>
+            </div>
+          </div>
+        </div>
+
+        <table class="items" style="color: black; font-size: 16px">
+          <thead>
+            <tr style="border-bottom: 5px solid rgba(49, 49, 49, 0.17)">
+              <th>Description</th>
+              <th>Rate</th>
+              <th>Quantity</th>
+              <th>Amount</th>
+              <th>Disc.</th>
+            </tr>
+          </thead>
+          <tbody id="invoice-items-table">
+            <!-- Invoice items will be populated here -->
+          </tbody>
+        </table>
+
+        <div class="totals" style="color: black; font-size: 16px">
+          <table
+            style="
+              display: flex;
+              flex-direction: column;
+              justify-content: end;
+              align-items: start;
+            "
+          >
+            <tr>
+              <td>Amount in Words:</td>
+            </tr>
+            <tr>
+              <td>ㅤ</td>
+            </tr>
+          </table>
+          <table
+            style="
+              display: flex;
+              flex-direction: column;
+              justify-content: end;
+              align-items: start;
+            "
+          >
+            <tr>
+              <td id="out"></td>
+            </tr>
+            <tr>
+              <td>
+                Payment Mode:<span id="display-payment-mode">
+                  Not Selected</span
+                >
+              </td>
+            </tr>
+          </table>
+          <table>
+            <tr style="border-bottom: 5px solid rgba(49, 49, 49, 0.17)">
+              <td>Sub - Total:</td>
+              <td class="value" style="padding-right: 30px">
+                Rs. <span id="subtotal">0.00</span>
+              </td>
+            </tr>
+            <tr
+              id="discount-row"
+              style="border-bottom: 5px solid rgba(49, 49, 49, 0.17)"
+            >
+              <td>Discount:</td>
+              <td class="value" style="padding-right: 30px">
+                Rs. <span id="total-discount">0.00</span>
+              </td>
+            </tr>
+            <tr style="border-bottom: 5px solid rgba(49, 49, 49, 0.17)">
+              <td><b>Grand Total:</b></td>
+              <td class="value" style="padding-right: 30px">
+                <b>Rs. <span id="grand-total">0.00</span>/-</b>
+              </td>
+            </tr>
+            <tr style="border-bottom: 5px solid rgba(49, 49, 49, 0.17)">
+              <td>Paid Amount:</td>
+              <td class="value" style="padding-right: 30px">
+                Rs. <span id="paid-amount">0.00</span>/-
+              </td>
+            </tr>
+            <tr id="due-row">
+              <td>Due Amount:</td>
+              <td class="value" style="padding-right: 30px">
+                Rs. <span id="due-amount">0.00</span>
+              </td>
+            </tr>
+          </table>
+        </div>
+
+        <div>
+          <div class="info-row" style="margin: 25px 0px">
+            <span class="label-info" style="font-weight: bold">Note:</span>
+            <span class="value">NTN: 3057486-2</span>
+          </div>
+          <div class="info-row">
+            <span>Recorded by: </span>
+            <span class="value">Dr. Gulrez Raja</span>
+          </div>
+        </div>
+        <div class="info-row">
+          <span>Amount in words: </span>
+          <span id="out"></span>
+        </div>
+      </div>
+
+      <div class="download-div" style="margin-top: 20px; text-align: center">
+        <button
+          class="download-btn"
+          onclick="downloadDiv()"
+          style="display: none"
+        >
+          Download as Image
+        </button>
+        <button class="download-btn" onclick="downloadPDF()">
+          Download PDF
+        </button>
+      </div>
+    </div>
+    <div
+      class="footer-div"
+      style="
+        opacity: 0.55;
+        text-align: center;
+        position: absolute;
+        bottom: 100px;
+        right: 0;
+        left: 0;
+        z-index: -1;
+      "
+    >
+      <b>
+        04 Jacaranda Club Sector E Phase II, DHA, Islamabad, Islamabad Capital,
+        Pakistan | +920335-4911911
+      </b>
+    </div>
+    <script>
+      // Store invoice items
+      let invoiceItems = [];
+      let itemCounter = 0;
+
+      // Get DOM elements
+      const patientInputs = {
+        name: document.getElementById("name"),
+        mr: document.getElementById("mr-no"),
+        phone: document.getElementById("phone"),
+        gender: document.getElementById("gender"),
+        doctor: document.getElementById("doctor-name"),
+        time: document.getElementById("appointment-time"),
+        paid: document.getElementById("paid"),
+        paymentMode: document.getElementById("payment-mode"),
+      };
+
+      const patientDisplays = {
+        name: document.getElementById("display-name"),
+        mr: document.getElementById("display-mr"),
+        phone: document.getElementById("display-phone"),
+        gender: document.getElementById("display-gender"),
+        doctor: document.getElementById("display-doctor"),
+        time: document.getElementById("display-time"),
+      };
+
+      const totals = {
+        subtotal: document.getElementById("subtotal"),
+        totalDiscount: document.getElementById("total-discount"),
+        grandTotal: document.getElementById("grand-total"),
+        paidAmount: document.getElementById("paid-amount"),
+        dueAmount: document.getElementById("due-amount"),
+        dueRow: document.getElementById("due-row"),
+        discountRow: document.getElementById("discount-row"),
+      };
+
+      const invoiceNumber = document.getElementById("invoice-number");
+      const itemsContainer = document.getElementById("items-container");
+      const invoiceItemsTable = document.getElementById("invoice-items-table");
+
+      // Utility functions
+      const moneyFmt = new Intl.NumberFormat("en-US", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      });
+
+      function formatDateTime(datetimeStr) {
+        if (!datetimeStr) return "";
+        const date = new Date(datetimeStr);
+        const day = String(date.getDate()).padStart(2, "0");
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const year = date.getFullYear();
+        let hours = date.getHours();
+        const minutes = String(date.getMinutes()).padStart(2, "0");
+        const ampm = hours >= 12 ? "PM" : "AM";
+        hours = hours % 12 || 12;
+        return `${day}/${month}/${year} - ${hours}:${minutes} ${ampm}`;
+      }
+
+      function parseNumber(v) {
+        if (v === null || v === undefined) return 0;
+        v = String(v).replace(/,/g, "").trim();
+        const n = parseFloat(v);
+        return isNaN(n) ? 0 : n;
+      }
+
+      // Add new item row
+      function addItemRow() {
+        itemCounter++;
+        const itemId = `item-${itemCounter}`;
+
+        const itemRow = document.createElement("div");
+        itemRow.className = "item-row";
+        itemRow.dataset.itemId = itemId;
+
+        itemRow.innerHTML = `
+          <div class="field">
+            <label for="${itemId}-description">Description</label>
+            <select id="${itemId}-description" data-field="description">
+              <option value="">Select Description</option>
+              <option value="Consultation">Consultation</option>
+              <option value="Filling">Filling</option>
+              <option value="Root Canal">Root Canal</option>
+              <option value="Polishing">Polishing</option>
+              <option value="Scaling">Scaling</option>
+              <option value="Extraction">Extraction</option>
+              <option value="Crown">Crown</option>
+              <option value="Bridge">Bridge</option>
+              <option value="Cleaning">Cleaning</option>
+              <option value="X-Ray">X-Ray</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="${itemId}-rate">Rate</label>
+            <input type="number" id="${itemId}-rate" data-field="rate" placeholder="0.00" min="0" step="0.01" />
+          </div>
+          <div class="field">
+            <label for="${itemId}-quantity">Quantity</label>
+            <input style="width: 105px" type="number" id="${itemId}-quantity" data-field="quantity" placeholder="1" min="1" step="1" value="1" />
+          </div>
+          <div class="field">
+            <label for="${itemId}-discount">Discount</label>
+            <input style="width: 170px" type="number" id="${itemId}-discount" data-field="discount" placeholder="0.00" min="0" step="0.01" />
+          </div>
+          <button style="margin-bottom: 5px" class="remove-btn" onclick="removeItemRow('${itemId}')">Remove</button>
+        `;
+
+        itemsContainer.appendChild(itemRow);
+
+        // Add event listeners to the new inputs
+        const inputs = itemRow.querySelectorAll("input, select");
+        inputs.forEach((input) => {
+          input.addEventListener("input", () => updateItemAndTotals(itemId));
+        });
+
+        // Initialize item data
+        invoiceItems.push({
+          id: itemId,
+          description: "",
+          rate: 0,
+          quantity: 1,
+          discount: 0,
+          amount: 0,
+        });
+
+        updateDisplay();
+      }
+
+      // Remove item row
+      function removeItemRow(itemId) {
+        const itemRow = document.querySelector(`[data-item-id="${itemId}"]`);
+        if (itemRow) {
+          itemRow.remove();
+        }
+
+        // Remove from invoiceItems array
+        invoiceItems = invoiceItems.filter((item) => item.id !== itemId);
+
+        updateDisplay();
+      }
+
+      // Update specific item and recalculate totals
+      function updateItemAndTotals(itemId) {
+        const itemRow = document.querySelector(`[data-item-id="${itemId}"]`);
+        const item = invoiceItems.find((i) => i.id === itemId);
+
+        if (itemRow && item) {
+          const description = itemRow.querySelector(
+            '[data-field="description"]'
+          ).value;
+          const rate = parseNumber(
+            itemRow.querySelector('[data-field="rate"]').value
+          );
+          const quantity =
+            parseNumber(
+              itemRow.querySelector('[data-field="quantity"]').value
+            ) || 1;
+          const discount = parseNumber(
+            itemRow.querySelector('[data-field="discount"]').value
+          );
+          const amount = rate * quantity - discount;
+
+          // Update item data
+          item.description = description;
+          item.rate = rate;
+          item.quantity = quantity;
+          item.discount = discount;
+          item.amount = Math.max(0, amount);
+        }
+
+        updateInvoiceTable();
+        updateTotals();
+      }
+
+      // Update invoice table display
+      function updateInvoiceTable() {
+        invoiceItemsTable.innerHTML = "";
+
+        invoiceItems.forEach((item) => {
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td>${item.description || ""}</td>
+            <td>${item.rate ? moneyFmt.format(item.rate) : ""}</td>
+            <td>${item.quantity || ""}</td>
+            <td>${
+              item.amount ? moneyFmt.format(item.amount + item.discount) : ""
+            }</td>
+            <td>${item.discount ? moneyFmt.format(item.discount) : "0"}</td>
+          `;
+          invoiceItemsTable.appendChild(row);
+        });
+      }
+
+      // Calculate and update totals
+      function updateTotals() {
+        let subtotal = 0;
+        let totalDiscount = 0;
+
+        invoiceItems.forEach((item) => {
+          subtotal += item.rate * item.quantity;
+          totalDiscount += item.discount;
+        });
+
+        const grandTotal = Math.max(0, subtotal - totalDiscount);
+        const paid = parseNumber(patientInputs.paid.value);
+        const due = Math.max(0, grandTotal - paid);
+        const paymentMode = patientInputs.paymentMode.value;
+        const displayPaymentMode = document.getElementById(
+          "display-payment-mode"
+        );
+
+        displayPaymentMode.textContent = paymentMode ? ` ${paymentMode}` : "";
+
+        totals.subtotal.textContent = moneyFmt.format(subtotal);
+        totals.totalDiscount.textContent = moneyFmt.format(totalDiscount);
+        totals.grandTotal.textContent = moneyFmt.format(grandTotal);
+        totals.paidAmount.textContent = moneyFmt.format(paid);
+        totals.dueAmount.textContent = moneyFmt.format(due);
+
+        totals.dueRow.style.display = due > 0 ? "" : "none";
+        totals.discountRow.style.display = totalDiscount > 0 ? "" : "none";
+      }
+
+      // Update patient information display
+      function updatePatientDisplay() {
+        patientDisplays.name.textContent = patientInputs.name.value || "";
+        patientDisplays.mr.textContent = patientInputs.mr.value || "";
+        patientDisplays.phone.textContent = patientInputs.phone.value || "";
+        patientDisplays.gender.textContent = patientInputs.gender.value || "";
+        patientDisplays.doctor.textContent = patientInputs.doctor.value || "";
+        patientDisplays.time.textContent = formatDateTime(
+          patientInputs.time.value
+        );
+      }
+
+      // Main update function
+      function updateDisplay() {
+        updatePatientDisplay();
+        updateInvoiceTable();
+        updateTotals();
+      }
+
+      function setCurrentTimeAndMeta() {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, "0");
+        const day = String(now.getDate()).padStart(2, "0");
+        const hours = String(now.getHours()).padStart(2, "0");
+        const minutes = String(now.getMinutes()).padStart(2, "0");
+        const localDatetime = `${year}-${month}-${day}T${hours}:${minutes}`;
+
+        patientInputs.time.value = localDatetime;
+        invoiceNumber.textContent = String(
+          Math.floor(100000 + Math.random() * 900000)
+        );
+        updateDisplay();
+      }
+
+      // Event listeners for patient information
+      Object.values(patientInputs).forEach((input) => {
+        input.addEventListener("input", updateDisplay);
+      });
+
+      // Download functions
+      function downloadDiv() {
+        const div = document.getElementById("invoice-card");
+        html2canvas(div).then((canvas) => {
+          const imgData = canvas.toDataURL("image/png");
+          const link = document.createElement("a");
+          link.href = imgData;
+          link.download = `${patientInputs.name.value || "invoice"}(${
+            patientInputs.mr.value || "no-mr"
+          }).png`;
+          link.click();
+        });
+      }
+
+      function downloadPDF() {
+        // const element = document.getElementById("invoice-card");
+
+        // Hide elements
+        document.querySelectorAll(".controls, .download-div").forEach((el) => {
+          el.style.display = "none";
+        });
+        const element = document.querySelector(".card");
+        const opt = {
+          margin: 10, // px margin around
+          // filename: `${patientInputs.mr.value || "no-mr"} - ${
+          //   patientInputs.name.value || "invoice"
+          // } - invoice`,
+
+          filename: `Clinic Invoices/${patientInputs.mr.value || "no-mr"} - ${
+            patientInputs.name.value || "invoice"
+          } - invoice.pdf`,
+
+          image: { type: "jpeg", quality: 1 },
+          html2canvas: { scale: 2, useCORS: true },
+          jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+        };
+
+        html2pdf()
+          .set(opt)
+          .from(element)
+          .save()
+          .then(() => {
+            // Show elements back after download
+            document
+              .querySelectorAll(".controls, .download-div")
+              .forEach((el) => {
+                el.style.display = "";
+              });
+          });
+      }
+
+      // Initialize with one item row
+      window.addEventListener("DOMContentLoaded", () => {
+        setCurrentTimeAndMeta();
+        addItemRow(); // Add the first item row automatically
+      });
+    </script>
+
+    <script>
+      // === Number to Words (International system) ===
+      function numberToWordsIntl(num) {
+        const ones = [
+          "",
+          "One",
+          "Two",
+          "Three",
+          "Four",
+          "Five",
+          "Six",
+          "Seven",
+          "Eight",
+          "Nine",
+          "Ten",
+          "Eleven",
+          "Twelve",
+          "Thirteen",
+          "Fourteen",
+          "Fifteen",
+          "Sixteen",
+          "Seventeen",
+          "Eighteen",
+          "Nineteen",
+        ];
+        const tens = [
+          "",
+          "",
+          "Twenty",
+          "Thirty",
+          "Forty",
+          "Fifty",
+          "Sixty",
+          "Seventy",
+          "Eighty",
+          "Ninety",
+        ];
+        const scales = ["", "Thousand", "Million", "Billion", "Trillion"];
+
+        function chunkToWords(n) {
+          let str = "";
+          if (n >= 100) {
+            str += ones[Math.floor(n / 100)] + " Hundred";
+            n %= 100;
+            if (n) str += " ";
+          }
+          if (n >= 20) {
+            str += tens[Math.floor(n / 10)];
+            n %= 10;
+            if (n) str += " " + ones[n];
+          } else if (n > 0) {
+            str += ones[n];
+          }
+          return str;
+        }
+
+        if (num === 0) return "Zero";
+
+        let words = "";
+        let scaleIndex = 0;
+
+        while (num > 0) {
+          let chunk = num % 1000;
+          if (chunk) {
+            let chunkWords = chunkToWords(chunk);
+            if (scales[scaleIndex]) chunkWords += " " + scales[scaleIndex];
+            words = chunkWords + (words ? " " + words : "");
+          }
+          num = Math.floor(num / 1000);
+          scaleIndex++;
+        }
+        return words.trim();
+      }
+
+      function amountInWords(amount) {
+        if (typeof amount === "string") {
+          // remove commas and extra spaces if any
+          amount = amount.replace(/,/g, "").trim();
+        }
+        amount = Number(amount);
+        if (isNaN(amount)) return "";
+
+        const rupees = Math.floor(amount);
+        const paise = Math.round((amount - rupees) * 100);
+
+        let words = "";
+        if (rupees > 0) words += numberToWordsIntl(rupees) + " Rupees";
+        if (paise > 0) words += " and " + numberToWordsIntl(paise) + " Paise";
+
+        return words ? words : "";
+      }
+
+      const grandTotalSpan = document.getElementById("grand-total");
+      const out = document.getElementById("out");
+
+      // Watch for changes in grand-total span
+      const observer = new MutationObserver(() => {
+        const total = grandTotalSpan.textContent.replace(/,/g, "").trim();
+        out.textContent = amountInWords(total);
+      });
+
+      observer.observe(grandTotalSpan, {
+        childList: true,
+        characterData: true,
+        subtree: true,
+      });
+    </script>
+  </body>
+</html>
